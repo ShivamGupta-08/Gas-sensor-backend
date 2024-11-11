@@ -34,31 +34,34 @@ async function connectToDatabase() {
 
 
 // Endpoint to update helmet data
-app.post("/update-data", async (req, res) => {
-  const { filter, update } = req.body; // Expect filter and update in the request body
+app.post('/update-data', async (req, res) => {
+  const { helmetId, mq2Level, mq7Level } = req.body;
+
+  // Ensure the required data is present
+  if (!helmetId || !mq2Level || !mq7Level) {
+    return res.status(400).send("Missing required fields");
+  }
+
+  const filter = { "helmetId": helmetId };
+  const update = {
+    $set: { 
+      "mq2Level": mq2Level,
+      "mq7Level": mq7Level
+    }
+  };
 
   try {
-    const database = client.db("GasData");
-    const collection = database.collection("helmetdata");
-
-    // Perform the update
-    const result = await collection.updateOne(filter, { $set: update });
-
-    if (result.matchedCount > 0) {
-      res.status(200).json({
-        message: "Document updated successfully",
-        matchedCount: result.matchedCount,
-        modifiedCount: result.modifiedCount,
-      });
+    const result = await collection.updateOne(filter, update);
+    if (result.modifiedCount > 0) {
+      res.status(200).send("Document updated successfully");
     } else {
-      res.status(404).json({ message: "No document matched the filter criteria" });
+      res.status(404).send("No document found with the given helmetId");
     }
   } catch (error) {
     console.error("Error updating data:", error);
-    res.status(500).json({ message: "Internal Server Error", error });
+    res.status(500).send("Error updating data");
   }
 });
-
 
 
 // // Endpoint to retrieve helmet data by helmetId

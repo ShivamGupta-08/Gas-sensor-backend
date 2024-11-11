@@ -51,6 +51,8 @@ app.post('/update-data', async (req, res) => {
   };
 
   try {
+    const database = client.db("GasData"); // Replace with your database name
+    const collection = database.collection("helmetdata");
     const result = await collection.updateOne(filter, update);
     if (result.modifiedCount > 0) {
       res.status(200).send("Document updated successfully");

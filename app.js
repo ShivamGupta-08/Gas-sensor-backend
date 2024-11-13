@@ -5,7 +5,6 @@ import express from 'express';
 // const Helmet = require('./models/Helmet');
 import { MongoClient } from 'mongodb';
 import cors from 'cors'
-
 // Initialize Express app
 const app = express();
 const PORT = 3001;
@@ -45,8 +44,10 @@ app.post('/update-data', async (req, res) => {
   const filter = { "helmetId": helmetId };
   const update = {
     $set: { 
+      "lastUpdated": new Date(),
       "mq2Level": mq2Level,
-      "mq7Level": mq7Level
+      "mq7Level": mq7Level,
+      "status": 'on'
     }
   };
 
@@ -65,6 +66,30 @@ app.post('/update-data', async (req, res) => {
   }
 });
 
+
+// Periodically check if any helmet is off
+setInterval(async () => {
+    const threshold = 2000; // 10 seconds timeout for helmet off
+    const now = Date.now();
+
+    try {
+       const database = client.db("GasData"); // Replace with your database name
+       const collection = database.collection("helmetdata");
+        const helmets = await collection.find({}).toArray();
+        for (const helmet of helmets) {
+            // Mark as "off" if no data within threshold
+            if (now - new Date(helmet.lastUpdated).getTime() > threshold) {
+                await collection.updateOne(
+                    { helmetId: helmet.helmetId },
+                    { $set: { status: 'off' } }
+                );
+                console.log(`Helmet ${helmet.helmetId} is off`);
+            }
+        }
+    } catch (error) {
+        console.error('Error checking helmet statuses:', error);
+    }
+}, 1000);
 
 // // Endpoint to retrieve helmet data by helmetId
 // GET endpoint to retrieve helmet data by helmetId

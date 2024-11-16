@@ -69,7 +69,7 @@ app.post('/update-data', async (req, res) => {
 
 // Periodically check if any helmet is off
 setInterval(async () => {
-    const threshold = 2000; // 10 seconds timeout for helmet off
+    const threshold = 4000; // 10 seconds timeout for helmet off
     const now = Date.now();
 
     try {
@@ -89,7 +89,7 @@ setInterval(async () => {
     } catch (error) {
         console.error('Error checking helmet statuses:', error);
     }
-}, 1000);
+}, 2000);
 
 // // Endpoint to retrieve helmet data by helmetId
 // GET endpoint to retrieve helmet data by helmetId
